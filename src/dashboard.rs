@@ -187,44 +187,95 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mem0 Local - Memory Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1A1C1E',     // Deep ink
+                        secondary: '#6C7278',   // Slate border & metadata
+                        tertiary: '#B8422E',    // Boston Clay màu nhấn đỏ gạch
+                        neutral: '#F7F5F2',     // Warm limestone nền
+                    },
+                    fontFamily: {
+                        sans: ['"Public Sans"', 'sans-serif'],
+                        mono: ['"Space Grotesk"', 'monospace'],
+                    },
+                    borderRadius: {
+                        sm: '4px',
+                        md: '8px',
+                        lg: '16px',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body {
-            font-family: 'Outfit', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            min-height: 100vh;
-            color: #f8fafc;
+            font-family: 'Public Sans', sans-serif;
+            background-color: #F7F5F2;
+            color: #1A1C1E;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
-        .glass {
-            background: rgba(30, 41, 59, 0.45);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        .dark body {
+            background-color: #1A1C1E;
+            color: #F7F5F2;
         }
-        .glow-hover:hover {
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-            transform: translateY(-2px);
+        .font-space-grotesk {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .transition-all {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Custom scrollbar to match the design system */
+        #memories-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        #memories-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #memories-container::-webkit-scrollbar-thumb {
+            background-color: rgba(108, 114, 120, 0.25);
+            border-radius: 3px;
+        }
+        #memories-container::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(108, 114, 120, 0.45);
+        }
+        .dark #memories-container::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        .dark #memories-container::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.3);
         }
     </style>
 </head>
-<body class="p-6 md:p-12">
+<body class="bg-neutral text-primary dark:bg-primary dark:text-neutral p-6 md:p-12 font-sans selection:bg-tertiary/10 selection:text-tertiary transition-all duration-300">
     <div class="max-w-6xl mx-auto">
         <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 pb-6 border-b border-secondary/15 dark:border-secondary/30 gap-4">
             <div>
-                <h1 class="text-4xl font-extrabold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-3">
-                    <i class="fa-solid fa-brain text-indigo-400"></i> Mem0 Local Dashboard
+                <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-primary dark:text-neutral flex items-center gap-3">
+                    <i class="fa-solid fa-brain text-tertiary"></i> Mem0 Local Dashboard
                 </h1>
-                <p class="text-slate-400 mt-2">Offline long-term memory management dashboard for AI agents (Rust Backend)</p>
+                <p class="text-secondary dark:text-secondary/80 mt-2 text-sm md:text-base font-normal">Offline long-term memory management dashboard for AI agents (Rust Backend)</p>
             </div>
-            <div class="flex gap-4">
-                <div class="glass px-6 py-3 rounded-2xl flex items-center gap-3">
-                    <span class="text-sm text-slate-400">Total Facts:</span>
-                    <span id="fact-count" class="text-2xl font-bold text-indigo-400">0</span>
+            <div class="flex items-center gap-3 flex-wrap">
+                <!-- Total Facts Badge aligned to h-10 -->
+                <div class="h-10 px-4 bg-white dark:bg-[#252729] border border-secondary/15 dark:border-secondary/30 rounded-md flex items-center gap-2 shadow-sm transition-all duration-300">
+                    <span class="text-[10px] text-secondary dark:text-secondary/80 font-bold tracking-wider font-mono uppercase">Total Facts</span>
+                    <span id="fact-count" class="text-base font-bold text-tertiary font-mono">0</span>
                 </div>
-                <button onclick="clearAllMemories()" class="px-5 py-3 rounded-2xl border border-red-500/30 text-red-400 hover:bg-red-500/10 transition flex items-center gap-2">
+                <!-- Theme Toggle Button aligned to w-10 h-10 -->
+                <button id="theme-toggle" onclick="toggleTheme()" class="w-10 h-10 rounded-md border border-secondary/30 dark:border-secondary/50 text-secondary dark:text-secondary/80 hover:bg-secondary/5 dark:hover:bg-secondary/10 transition-all flex items-center justify-center shadow-sm" title="Toggle Light/Dark Mode">
+                    <i id="theme-icon" class="fa-solid fa-moon"></i>
+                </button>
+                <!-- Clear All Button aligned to h-10 -->
+                <button onclick="clearAllMemories()" class="h-10 px-4 rounded-md border border-tertiary/30 text-tertiary hover:bg-tertiary/5 dark:hover:bg-tertiary/10 transition-all text-sm font-semibold flex items-center gap-2 shadow-sm">
                     <i class="fa-solid fa-trash-can"></i> Clear All
                 </button>
             </div>
@@ -235,33 +286,33 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
             <!-- Left Side: Controls -->
             <div class="lg:col-span-1 space-y-6">
                 <!-- Add Fact Card -->
-                <div class="glass p-6 rounded-3xl shadow-xl">
-                    <h2 class="text-xl font-semibold mb-4 text-purple-300 flex items-center gap-2">
-                        <i class="fa-solid fa-plus-circle"></i> Add New Memory
+                <div class="bg-white dark:bg-[#252729] border border-secondary/15 dark:border-secondary/30 p-6 md:p-8 rounded-lg shadow-sm transition-all duration-300">
+                    <h2 class="text-lg font-bold mb-4 text-primary dark:text-neutral tracking-tight flex items-center gap-2">
+                        <i class="fa-solid fa-circle-plus text-tertiary"></i> Add New Memory
                     </h2>
                     <div class="space-y-4">
                         <textarea id="new-fact" rows="4" placeholder="Example: User prefers PostgreSQL and Rust for API development..." 
-                            class="w-full px-4 py-3 rounded-2xl bg-slate-900/60 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/80 transition resize-none"></textarea>
-                        <button onclick="saveMemory()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 font-semibold text-white glow-hover transition duration-300 flex justify-center items-center gap-2">
+                            class="w-full px-4 py-3 rounded-md bg-neutral/30 border border-secondary/20 dark:bg-primary/40 dark:border-secondary/40 text-primary dark:text-neutral placeholder-secondary/50 focus:outline-none focus:border-tertiary/60 transition-all resize-none text-sm leading-relaxed"></textarea>
+                        <button onclick="saveMemory()" class="w-full py-3 rounded-md bg-tertiary font-semibold text-white hover:bg-tertiary/90 shadow-sm hover:shadow transition-all duration-200 flex justify-center items-center gap-2 text-sm tracking-wide">
                             <i class="fa-solid fa-cloud-arrow-up"></i> Save to Memory
                         </button>
                     </div>
                 </div>
 
                 <!-- Search Card -->
-                <div class="glass p-6 rounded-3xl shadow-xl">
-                    <h2 class="text-xl font-semibold mb-4 text-pink-300 flex items-center gap-2">
-                        <i class="fa-solid fa-magnifying-glass"></i> Semantic Search
+                <div class="bg-white dark:bg-[#252729] border border-secondary/15 dark:border-secondary/30 p-6 md:p-8 rounded-lg shadow-sm transition-all duration-300">
+                    <h2 class="text-lg font-bold mb-4 text-primary dark:text-neutral tracking-tight flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass text-tertiary"></i> Semantic Search
                     </h2>
                     <div class="space-y-4">
                         <div class="relative">
-                            <input id="search-query" type="text" placeholder="Enter search keywords..." 
-                                class="w-full pl-4 pr-10 py-3 rounded-2xl bg-slate-900/60 border border-slate-700/50 text-white placeholder-slate-500 focus:outline-none focus:border-pink-500/80 transition">
-                            <button onclick="searchMemories()" class="absolute right-3 top-3.5 text-slate-400 hover:text-pink-400">
+                            <input id="search-query" type="text" placeholder="Enter search query..." 
+                                class="w-full pl-4 pr-10 py-3 rounded-md bg-neutral/30 border border-secondary/20 dark:bg-primary/40 dark:border-secondary/40 text-primary dark:text-neutral placeholder-secondary/50 focus:outline-none focus:border-tertiary/60 transition-all text-sm">
+                            <button onclick="searchMemories()" class="absolute right-3 top-3.5 text-secondary hover:text-tertiary transition-colors">
                                 <i class="fa-solid fa-arrow-right"></i>
                             </button>
                         </div>
-                        <button onclick="resetSearch()" id="btn-reset-search" class="w-full py-2.5 rounded-2xl border border-slate-700/80 text-sm text-slate-400 hover:bg-slate-800/40 transition hidden">
+                        <button onclick="resetSearch()" id="btn-reset-search" class="w-full py-2.5 rounded-md border border-secondary/30 text-xs font-semibold text-secondary dark:text-secondary/80 hover:bg-neutral dark:hover:bg-primary/50 transition-all hidden">
                             Back to All Memories
                         </button>
                     </div>
@@ -271,8 +322,8 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
             <!-- Right Side: Memory List -->
             <div class="lg:col-span-2 space-y-4">
                 <div class="flex justify-between items-center mb-2">
-                    <h2 id="list-title" class="text-2xl font-bold text-slate-200">Current Memories</h2>
-                    <span id="search-indicator" class="text-sm bg-pink-500/10 border border-pink-500/30 text-pink-400 px-3 py-1 rounded-full hidden">Search Results</span>
+                    <h2 id="list-title" class="text-xl font-bold tracking-tight text-primary dark:text-neutral">Current Memories</h2>
+                    <span id="search-indicator" class="text-xs bg-tertiary/10 border border-tertiary/20 text-tertiary px-3 py-1 rounded-full font-semibold hidden font-mono">SEARCH RESULTS</span>
                 </div>
                 <div id="memories-container" class="space-y-4 max-h-[650px] overflow-y-auto pr-2">
                     <!-- Cards will be dynamically injected here -->
@@ -284,9 +335,40 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
     <!-- Script JavaScript -->
     <script>
         const USER_ID = 'acer';
+        let memories = [];
+        let isSearching = false;
+
+        // Theme Toggle Logic
+        function initTheme() {
+            const theme = localStorage.getItem('theme');
+            const icon = document.getElementById('theme-icon');
+            if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                if (icon) icon.className = 'fa-solid fa-sun';
+            } else {
+                document.documentElement.classList.remove('dark');
+                if (icon) icon.className = 'fa-solid fa-moon';
+            }
+        }
+
+        function toggleTheme() {
+            const icon = document.getElementById('theme-icon');
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                if (icon) icon.className = 'fa-solid fa-moon';
+                showToast("Switched to Light Mode", "success");
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                if (icon) icon.className = 'fa-solid fa-sun';
+                showToast("Switched to Dark Mode", "success");
+            }
+        }
 
         // Initial Load
         document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
             fetchMemories();
             
             // Search on Enter
@@ -301,10 +383,13 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
                 const response = await fetch(`/api/facts?user_id=${USER_ID}`);
                 const data = await response.json();
                 if (data.status === 'success') {
-                    renderMemories(data.results);
+                    memories = data.results;
+                    isSearching = false;
+                    renderMemories(memories);
                 }
             } catch (err) {
                 console.error("Fetch error:", err);
+                showToast("Cannot connect to server", "error");
             }
         }
 
@@ -314,7 +399,7 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
             const countSpan = document.getElementById('fact-count');
             
             if (!isSearchResult) {
-                countSpan.textContent = facts.length;
+                countSpan.textContent = facts.filter(f => !f.syncing).length;
                 document.getElementById('list-title').textContent = "Current Memories";
                 document.getElementById('search-indicator').classList.add('hidden');
                 document.getElementById('btn-reset-search').classList.add('hidden');
@@ -328,8 +413,8 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
             
             if (facts.length === 0) {
                 container.innerHTML = `
-                    <div class="glass p-12 rounded-3xl text-center text-slate-500">
-                        <i class="fa-solid fa-box-open text-5xl mb-4 text-slate-600"></i>
+                    <div class="bg-white dark:bg-[#252729] border border-secondary/10 dark:border-secondary/30 p-12 rounded-lg text-center text-secondary dark:text-secondary/80 transition-all duration-300">
+                        <i class="fa-solid fa-box-open text-4xl mb-4 text-secondary/60"></i>
                         <p class="text-lg">No memories found.</p>
                     </div>
                 `;
@@ -337,29 +422,58 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
             }
 
             facts.forEach(item => {
-                const scoreText = item.score ? `<span class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 px-2 py-1 rounded-lg">Score: ${(item.score * 100).toFixed(1)}%</span>` : '';
+                const scoreText = item.score ? `<span class="text-xs bg-tertiary/10 text-tertiary border border-tertiary/20 px-2 py-0.5 rounded font-mono">Score: ${(item.score * 100).toFixed(1)}%</span>` : '';
+                const syncingLabel = item.syncing ? `
+                    <span class="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-mono flex items-center gap-1 animate-pulse">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Syncing
+                    </span>` : '';
+                
+                const opacityClass = item.syncing ? 'opacity-70 pointer-events-none' : '';
+                
                 container.innerHTML += `
-                    <div class="glass p-6 rounded-2xl shadow-md flex justify-between items-start gap-4 transition hover:bg-slate-800/30 hover:border-slate-700/60 duration-200">
-                        <div class="space-y-2 flex-1">
-                            <p class="text-slate-100 leading-relaxed text-lg">${item.text}</p>
-                            <div class="flex items-center gap-3">
-                                <span class="text-xs text-slate-500 font-mono">ID: ${item.id}</span>
+                    <div class="bg-white dark:bg-[#252729] border border-secondary/15 dark:border-secondary/30 p-6 rounded-lg shadow-sm flex justify-between items-start gap-4 transition-all hover:-translate-y-0.5 hover:shadow-md dark:hover:shadow-black/30 duration-200 ${opacityClass}">
+                        <div class="space-y-3 flex-1">
+                            <p class="text-primary dark:text-neutral leading-relaxed text-base md:text-lg">${item.text}</p>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <span class="text-[11px] text-secondary dark:text-secondary/70 font-mono">ID: ${item.id}</span>
                                 ${scoreText}
+                                ${syncingLabel}
                             </div>
                         </div>
-                        <button onclick="deleteMemory('${item.id}')" class="text-slate-500 hover:text-red-400 p-2 rounded-xl hover:bg-red-500/10 transition" title="Delete Fact">
-                            <i class="fa-solid fa-trash"></i>
+                        <button onclick="deleteMemory('${item.id}')" class="text-secondary dark:text-secondary/70 hover:text-tertiary p-2 rounded-md hover:bg-tertiary/5 dark:hover:bg-tertiary/10 transition-all" title="Delete Fact">
+                            <i class="fa-solid fa-trash-can"></i>
                         </button>
                     </div>
                 `;
             });
         }
 
-        // Save Fact
+        // Save Fact (Optimistic UI)
         async function saveMemory() {
             const textarea = document.getElementById('new-fact');
             const fact = textarea.value.trim();
             if (!fact) return;
+
+            textarea.value = '';
+
+            const tempId = 'temp-' + Date.now();
+            const tempRecord = {
+                id: tempId,
+                text: fact,
+                syncing: true
+            };
+
+            const previousMemories = [...memories];
+
+            if (!isSearching) {
+                memories.unshift(tempRecord);
+                renderMemories(memories);
+            } else {
+                isSearching = false;
+                memories.unshift(tempRecord);
+                document.getElementById('search-query').value = '';
+                renderMemories(memories);
+            }
 
             try {
                 const response = await fetch('/api/facts', {
@@ -369,11 +483,22 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
                 });
                 const res = await response.json();
                 if (res.status === 'success') {
-                    textarea.value = '';
-                    fetchMemories();
+                    const index = memories.findIndex(m => m.id === tempId);
+                    if (index !== -1) {
+                        memories[index].id = res.memory_id;
+                        memories[index].text = res.fact || fact;
+                        delete memories[index].syncing;
+                        renderMemories(memories);
+                    }
+                    showToast("Memory saved successfully!", "success");
+                } else {
+                    throw new Error(res.message || "Failed to save memory");
                 }
             } catch (err) {
                 console.error("Save error:", err);
+                memories = previousMemories;
+                renderMemories(memories);
+                showToast("Failed to save memory. Pls try again.", "error");
             }
         }
 
@@ -391,45 +516,96 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
                 });
                 const res = await response.json();
                 if (res.status === 'success') {
+                    isSearching = true;
                     renderMemories(res.results, true);
                 }
             } catch (err) {
                 console.error("Search error:", err);
+                showToast("Search failed", "error");
             }
         }
 
         // Reset Search
         function resetSearch() {
             document.getElementById('search-query').value = '';
-            fetchMemories();
+            isSearching = false;
+            renderMemories(memories);
         }
 
-        // Delete Fact
+        // Delete Fact (Optimistic UI)
         async function deleteMemory(id) {
+            if (id.startsWith('temp-')) return;
             if (!confirm("Are you sure you want to delete this memory?")) return;
+
+            const index = memories.findIndex(m => m.id === id);
+            if (index === -1) return;
+
+            const previousMemories = [...memories];
+
+            memories.splice(index, 1);
+            renderMemories(memories);
+
             try {
                 const response = await fetch(`/api/facts?id=${id}`, { method: 'DELETE' });
                 const res = await response.json();
                 if (res.status === 'success') {
-                    fetchMemories();
+                    showToast("Memory deleted successfully!", "success");
+                } else {
+                    throw new Error(res.message || "Failed to delete memory");
                 }
             } catch (err) {
                 console.error("Delete error:", err);
+                memories = previousMemories;
+                renderMemories(memories);
+                showToast("Failed to delete memory. Rolled back.", "error");
             }
         }
 
-        // Clear All
+        // Clear All (Optimistic UI)
         async function clearAllMemories() {
+            if (memories.length === 0) return;
             if (!confirm("WARNING: This will permanently clear ALL memories! Continue?")) return;
+
+            const previousMemories = [...memories];
+
+            memories = [];
+            renderMemories(memories);
+
             try {
                 const response = await fetch(`/api/facts/clear?user_id=${USER_ID}`, { method: 'POST' });
                 const res = await response.json();
                 if (res.status === 'success') {
-                    fetchMemories();
+                    showToast("All memories cleared!", "success");
+                } else {
+                    throw new Error(res.message || "Failed to clear memories");
                 }
             } catch (err) {
                 console.error("Clear error:", err);
+                memories = previousMemories;
+                renderMemories(memories);
+                showToast("Failed to clear memories. Rolled back.", "error");
             }
+        }
+
+        // Helper Toast Notification
+        function showToast(message, type = "success") {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-5 right-5 px-6 py-3.5 rounded-md shadow-lg dark:shadow-black/30 transition-all transform translate-y-0 opacity-100 font-sans z-50 text-sm font-medium border flex items-center gap-2 duration-300`;
+            
+            if (type === "success") {
+                toast.className += " bg-white dark:bg-[#252729] border-emerald-500/30 dark:border-emerald-500/50 text-emerald-700 dark:text-emerald-400";
+                toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-500"></i> ${message}`;
+            } else {
+                toast.className += " bg-white dark:bg-[#252729] border-tertiary/30 dark:border-tertiary/50 text-tertiary dark:text-tertiary/80";
+                toast.innerHTML = `<i class="fa-solid fa-circle-exclamation text-tertiary"></i> ${message}`;
+            }
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
     </script>
 </body>
