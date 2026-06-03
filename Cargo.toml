@@ -15,4 +15,4 @@ clap = { version = "4.5", features = ["derive"] }
 tiny_http = "0.12"
 
 [patch.crates-io]
-hf-hub = { path = "../hf-hub-0.3.2" }
+hf-hub = { path = "./hf-hub-0.3.2" }
