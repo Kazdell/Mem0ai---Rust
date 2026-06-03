@@ -17,7 +17,7 @@ use interactive::run_interactive_menu;
 
 // --- CLI DEFINITIONS ---
 #[derive(Parser, Debug)]
-#[command(name = "mem0_rust", version = "1.0", about = "Mem0 Local Server & CLI in Rust")]
+#[command(name = "mem0_rust_server", version = "1.0.0", about = "Mem0 Local — Offline long-term memory layer for AI agents (Rust Standalone)")]
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
@@ -25,40 +25,40 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    /// Thêm một Fact mới thủ công
+    /// Add a new fact manually
     Add {
         fact: String,
-        #[arg(short, long, default_value = "acer")]
+        #[arg(short, long, default_value = "default")]
         user: String,
     },
-    /// Tìm kiếm ngữ nghĩa các Fact
+    /// Search facts semantically
     Search {
         query: String,
-        #[arg(short, long, default_value = "acer")]
+        #[arg(short, long, default_value = "default")]
         user: String,
         #[arg(short, long, default_value_t = 5)]
         limit: usize,
     },
-    /// Liệt kê tất cả các Fact của user
+    /// List all facts for a user
     List {
-        #[arg(short, long, default_value = "acer")]
+        #[arg(short, long, default_value = "default")]
         user: String,
     },
-    /// Xóa một Fact dựa trên ID
+    /// Delete a fact by its ID
     Delete {
         id: String,
     },
-    /// Xóa sạch tất cả Fact của user
+    /// Clear all facts for a user
     Clear {
-        #[arg(short, long, default_value = "acer")]
+        #[arg(short, long, default_value = "default")]
         user: String,
     },
-    /// Khởi chạy Web Dashboard trực tiếp từ Rust
+    /// Launch the Web Dashboard
     Dashboard {
         #[arg(short, long, default_value_t = 8899)]
         port: u16,
     },
-    /// Khởi chạy StdIO MCP Server cho AI Client/Editor
+    /// Launch the StdIO MCP Server
     Mcp,
 }
 
@@ -66,9 +66,9 @@ enum Commands {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
-    // Định vị đường dẫn DB
-    let home = dirs::home_dir().ok_or_else(|| std::io::Error::new(std::io::ErrorKind::NotFound, "Không tìm thấy thư mục Home"))?;
-    let db_path = home.join(".gemini").join("antigravity").join("mem0_rust_db.json");
+    // Locate database path
+    let home = dirs::home_dir().ok_or_else(|| std::io::Error::new(std::io::ErrorKind::NotFound, "Home directory not found"))?;
+    let db_path = home.join(".mem0_rust").join("db.json");
 
     if let Some(cmd) = cli.command {
         match cmd {

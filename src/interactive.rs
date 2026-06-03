@@ -10,9 +10,9 @@ use crate::mcp::run_mcp_server;
 pub fn print_welcome_menu() {
     println!(r#"
 ======================================================================
-🧠 Mem0 Local (Rust Standalone v1.0)
+Mem0 Local (Rust Standalone v1.0)
 ======================================================================
-Hệ thống bộ nhớ dài hạn offline, in-process, không cần Docker.
+Hoi thoai/Ký ức dài hạn offline, in-process, không cần Docker.
 
 Các tùy chọn lệnh hiện có (Chạy kèm tham số để thực thi):
 
@@ -47,10 +47,9 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
     let stdin = io::stdin();
     let mut reader = io::BufReader::new(stdin);
     
-    // Locate configuration path next to database file
     let config_path = db_path.parent()
         .unwrap_or(&PathBuf::from("."))
-        .join("mem0_config.json");
+        .join("config.json");
     
     let mut config = AppConfig::load(config_path.clone());
 
@@ -102,9 +101,9 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
         }
         println!();
         if is_vi {
-            print!("👉 Lua chon cua ban (0-9): ");
+            print!("Lua chon cua ban (0-9): ");
         } else {
-            print!("👉 Enter your choice (0-9): ");
+            print!("Enter your choice (0-9): ");
         }
         io::stdout().flush().ok();
 
@@ -125,35 +124,35 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
                 }
                 if let Err(e) = run_dashboard(8899, db_path.clone()) {
                     if is_vi {
-                        println!("❌ Loi khi chay Dashboard: {}", e);
+                        println!("Loi khi chay Dashboard: {}", e);
                     } else {
-                        println!("❌ Dashboard error: {}", e);
+                        println!("Dashboard error: {}", e);
                     }
                 }
             }
             "2" => {
                 if is_vi {
                     println!("\n--- Danh sach ky uc ---");
-                    print!("Nhap User ID [mac dinh: acer]: ");
+                    print!("Nhap User ID [mac dinh: default]: ");
                 } else {
                     println!("\n--- Memory List ---");
-                    print!("Enter User ID [default: acer]: ");
+                    print!("Enter User ID [default: default]: ");
                 }
                 io::stdout().flush().ok();
                 let mut user = String::new();
                 reader.read_line(&mut user)?;
                 let mut user = user.trim().to_string();
                 if user.is_empty() {
-                    user = "acer".to_string();
+                    user = "default".to_string();
                 }
 
                 let db = Database::load(db_path.clone());
                 let records: Vec<&MemoryRecord> = db.records.iter().filter(|r| r.user_id == user).collect();
                 if records.is_empty() {
                     if is_vi {
-                        println!("📭 Khong co ky uc nao cho user '{}'.", user);
+                        println!("Khong co ky uc nao cho user '{}'.", user);
                     } else {
-                        println!("📭 No memories found for user '{}'.", user);
+                        println!("No memories found for user '{}'.", user);
                     }
                 } else {
                     if is_vi {
@@ -190,30 +189,30 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
                 let query = query.trim().to_string();
                 if query.is_empty() {
                     if is_vi {
-                        println!("❌ Truy van khong duoc de trong.");
+                        println!("Truy van khong duoc de trong.");
                     } else {
-                        println!("❌ Search query cannot be empty.");
+                        println!("Search query cannot be empty.");
                     }
                     continue;
                 }
 
                 if is_vi {
-                    print!("Nhap User ID [mac dinh: acer]: ");
+                    print!("Nhap User ID [mac dinh: default]: ");
                 } else {
-                    print!("Enter User ID [default: acer]: ");
+                    print!("Enter User ID [default: default]: ");
                 }
                 io::stdout().flush().ok();
                 let mut user = String::new();
                 reader.read_line(&mut user)?;
                 let mut user = user.trim().to_string();
                 if user.is_empty() {
-                    user = "acer".to_string();
+                    user = "default".to_string();
                 }
 
                 if is_vi {
-                    println!("⚙️ Dang tai mo hinh Embedding va tien hanh tim kiem...");
+                    println!("Dang tai mo hinh Embedding va tien hanh tim kiem...");
                 } else {
-                    println!("⚙️ Loading Embedding model and searching...");
+                    println!("Loading Embedding model and searching...");
                 }
                 match init_embedder() {
                     Ok(embedder) => {
@@ -231,9 +230,9 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
                                 matches.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
                                 if matches.is_empty() {
                                     if is_vi {
-                                        println!("📭 Khong tim thay ket qua nao tuong hop.");
+                                        println!("Khong tim thay ket qua nao tuong hop.");
                                     } else {
-                                        println!("📭 No matching memories found.");
+                                        println!("No matching memories found.");
                                     }
                                 } else {
                                     if is_vi {
@@ -251,18 +250,18 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
                             }
                             Err(e) => {
                                 if is_vi {
-                                    println!("❌ Loi tao vector nhung: {}", e);
+                                    println!("Loi tao vector nhung: {}", e);
                                 } else {
-                                    println!("❌ Embedding generation error: {}", e);
+                                    println!("Embedding generation error: {}", e);
                                 }
                             }
                         }
                     }
                     Err(e) => {
                         if is_vi {
-                            println!("❌ Loi khoi tao mo hinh embedding: {}", e);
+                            println!("Loi khoi tao mo hinh embedding: {}", e);
                         } else {
-                            println!("❌ Model initialization error: {}", e);
+                            println!("Model initialization error: {}", e);
                         }
                     }
                 }
@@ -289,30 +288,30 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
                 let fact = fact.trim().to_string();
                 if fact.is_empty() {
                     if is_vi {
-                        println!("❌ Noi dung ky uc khong duoc de trong.");
+                        println!("Noi dung ky uc khong duoc de trong.");
                     } else {
-                        println!("❌ Memory content cannot be empty.");
+                        println!("Memory content cannot be empty.");
                     }
                     continue;
                 }
 
                 if is_vi {
-                    print!("Nhap User ID [mac dinh: acer]: ");
+                    print!("Nhap User ID [mac dinh: default]: ");
                 } else {
-                    print!("Enter User ID [default: acer]: ");
+                    print!("Enter User ID [default: default]: ");
                 }
                 io::stdout().flush().ok();
                 let mut user = String::new();
                 reader.read_line(&mut user)?;
                 let mut user = user.trim().to_string();
                 if user.is_empty() {
-                    user = "acer".to_string();
+                    user = "default".to_string();
                 }
 
                 if is_vi {
-                    println!("⚙️ Dang tai mo hinh Embedding va luu ky uc...");
+                    println!("Dang tai mo hinh Embedding va luu ky uc...");
                 } else {
-                    println!("⚙️ Loading Embedding model and saving memory...");
+                    println!("Loading Embedding model and saving memory...");
                 }
                 match init_embedder() {
                     Ok(embedder) => {
@@ -328,18 +327,18 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
                                 });
                                 if let Err(e) = db.save() {
                                     if is_vi {
-                                        println!("❌ Loi luu du lieu DB: {}", e);
+                                        println!("Loi luu du lieu DB: {}", e);
                                     } else {
-                                        println!("❌ DB write error: {}", e);
+                                        println!("DB write error: {}", e);
                                     }
                                 } else {
                                     if is_vi {
-                                        println!("✅ Da luu ky uc thanh cong!");
+                                        println!("Da luu ky uc thanh cong!");
                                         println!("   - ID: {}", fact_id);
                                         println!("   - User ID: {}", user);
                                         println!("   - Noi dung: {}", fact);
                                     } else {
-                                        println!("✅ Memory saved successfully!");
+                                        println!("Memory saved successfully!");
                                         println!("   - ID: {}", fact_id);
                                         println!("   - User ID: {}", user);
                                         println!("   - Content: {}", fact);
@@ -348,18 +347,18 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
                             }
                             Err(e) => {
                                 if is_vi {
-                                    println!("❌ Loi tao vector nhung: {}", e);
+                                    println!("Loi tao vector nhung: {}", e);
                                 } else {
-                                    println!("❌ Embedding generation error: {}", e);
+                                    println!("Embedding generation error: {}", e);
                                 }
                             }
                         }
                     }
                     Err(e) => {
                         if is_vi {
-                            println!("❌ Loi khoi tao mo hinh embedding: {}", e);
+                            println!("Loi khoi tao mo hinh embedding: {}", e);
                         } else {
-                            println!("❌ Model initialization error: {}", e);
+                            println!("Model initialization error: {}", e);
                         }
                     }
                 }
@@ -386,9 +385,9 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
                 let id = id.trim().to_string();
                 if id.is_empty() {
                     if is_vi {
-                        println!("❌ ID khong duoc de trong.");
+                        println!("ID khong duoc de trong.");
                     } else {
-                        println!("❌ ID cannot be empty.");
+                        println!("ID cannot be empty.");
                     }
                     continue;
                 }
@@ -400,24 +399,24 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
                     match db.save() {
                         Ok(_) => {
                             if is_vi {
-                                println!("✅ Da xoa thanh cong ky uc co ID: {}", id);
+                                println!("Da xoa thanh cong ky uc co ID: {}", id);
                             } else {
-                                println!("✅ Memory deleted successfully for ID: {}", id);
+                                println!("Memory deleted successfully for ID: {}", id);
                             }
                         }
                         Err(e) => {
                             if is_vi {
-                                println!("❌ Loi ghi DB: {}", e);
+                                println!("Loi ghi DB: {}", e);
                             } else {
-                                println!("❌ DB write error: {}", e);
+                                println!("DB write error: {}", e);
                             }
                         }
                     }
                 } else {
                     if is_vi {
-                        println!("❌ Khong tim thay ky uc nao phu hop voi ID: {}", id);
+                        println!("Khong tim thay ky uc nao phu hop voi ID: {}", id);
                     } else {
-                        println!("❌ No memory found with ID: {}", id);
+                        println!("No memory found with ID: {}", id);
                     }
                 }
 
@@ -432,27 +431,27 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
             "6" => {
                 if is_vi {
                     println!("\n--- Xoa sach tat ca ky uc ---");
-                    print!("Nhap User ID can xoa sach bo nho [mac dinh: acer]: ");
+                    print!("Nhap User ID can xoa sach bo nho [mac dinh: default]: ");
                 } else {
                     println!("\n--- Clear All Memories ---");
-                    print!("Enter User ID to clear [default: acer]: ");
+                    print!("Enter User ID to clear [default: default]: ");
                 }
                 io::stdout().flush().ok();
                 let mut user = String::new();
                 reader.read_line(&mut user)?;
                 let mut user = user.trim().to_string();
                 if user.is_empty() {
-                    user = "acer".to_string();
+                    user = "default".to_string();
                 }
 
                 let confirm = if is_vi {
-                    print!("⚠️ CANH BAO: Hanh dong nay se xoa SACH tat ca ky uc cua user '{}'! Co tiep tuc? (y/N): ", user);
+                    print!("CANH BAO: Hanh dong nay se xoa SACH tat ca ky uc cua user '{}'! Co tiep tuc? (y/N): ", user);
                     io::stdout().flush().ok();
                     let mut confirm = String::new();
                     reader.read_line(&mut confirm)?;
                     confirm.trim().to_lowercase()
                 } else {
-                    print!("⚠️ WARNING: Are you sure you want to clear ALL memories for user '{}'? (y/N): ", user);
+                    print!("WARNING: Are you sure you want to clear ALL memories for user '{}'? (y/N): ", user);
                     io::stdout().flush().ok();
                     let mut confirm = String::new();
                     reader.read_line(&mut confirm)?;
@@ -465,24 +464,24 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
                     match db.save() {
                         Ok(_) => {
                             if is_vi {
-                                println!("✅ Da xoa sach toan bo ky uc cua user '{}'.", user);
+                                println!("Da xoa sach toan bo ky uc cua user '{}'.", user);
                             } else {
-                                println!("✅ Cleared all memories for user '{}'.", user);
+                                println!("Cleared all memories for user '{}'.", user);
                             }
                         }
                         Err(e) => {
                             if is_vi {
-                                println!("❌ Loi khi ghi DB: {}", e);
+                                println!("Loi khi ghi DB: {}", e);
                             } else {
-                                println!("❌ DB write error: {}", e);
+                                println!("DB write error: {}", e);
                             }
                         }
                     }
                 } else {
                     if is_vi {
-                        println!("❌ Da huy thao tac xoa sach.");
+                        println!("Da huy thao tac xoa sach.");
                     } else {
-                        println!("❌ Clear cancelled.");
+                        println!("Clear cancelled.");
                     }
                 }
 
@@ -497,12 +496,12 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
             "7" => {
                 if is_vi {
                     println!("\n--- Khoi chay MCP Server ---");
-                    println!("⚠️ Luu y: MCP Server giao tiep qua Stdin/Stdout dang JSON-RPC.");
+                    println!("Luu y: MCP Server giao tiep qua Stdin/Stdout dang JSON-RPC.");
                     println!("Khi chay tu giao dien terminal nay, tien trinh se bi khoa va tuong tac truc tiep voi AI Editor.");
                     println!("Nhan Ctrl+C de thoat.");
                 } else {
                     println!("\n--- Running MCP Server ---");
-                    println!("⚠️ Note: MCP Server communicates via Stdin/Stdout using JSON-RPC.");
+                    println!("Note: MCP Server communicates via Stdin/Stdout using JSON-RPC.");
                     println!("Running it here will lock this terminal to handle requests from your AI Editor.");
                     println!("Press Ctrl+C to terminate.");
                 }
@@ -531,23 +530,23 @@ pub async fn run_interactive_menu(db_path: PathBuf) -> Result<(), Box<dyn std::e
                     config.language = Language::English;
                 }
                 if let Err(e) = config.save(config_path.clone()) {
-                    println!("❌ Config save error: {}", e);
+                    println!("Config save error: {}", e);
                 }
             }
             "0" => {
                 if is_vi {
-                    println!("🚪 Dang thoat chuong trinh. Tam biet!");
+                    println!("Dang thoat chuong trinh. Tam biet!");
                 } else {
-                    println!("🚪 Exiting program. Goodbye!");
+                    println!("Exiting program. Goodbye!");
                 }
                 break;
             }
             _ => {
                 if is_vi {
-                    println!("❌ Lua chon khong hop le. Vui loi nhap so tu 0 den 9.");
+                    println!("Lua chon khong hop le. Vui loi nhap so tu 0 den 9.");
                     println!("Nhan Enter de thu lai...");
                 } else {
-                    println!("❌ Invalid option. Please enter a number between 0 and 9.");
+                    println!("Invalid option. Please enter a number between 0 and 9.");
                     println!("Press Enter to try again...");
                 }
                 let mut temp = String::new();
