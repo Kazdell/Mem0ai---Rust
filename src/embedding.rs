@@ -23,18 +23,18 @@ pub fn init_embedder() -> Result<SentenceTransformer, io::Error> {
         && local_model_dir.join("config.json").exists()
         && local_model_dir.join("tokenizer.json").exists()
     {
-        eprintln!("⚙️ Local model detected at {:?}. Initializing...", local_model_dir);
+        eprintln!("Local model detected at {:?}. Initializing...", local_model_dir);
         SentenceTransformer::from_folder(&local_model_dir, &Device::Cpu)
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?
     } else {
-        eprintln!("⚙️ Local model not found next to exe. Fetching/loading from HuggingFace...");
+        eprintln!("Local model not found next to exe. Fetching/loading from HuggingFace...");
         SentenceTransformer::from_repo_string(
             "sentence-transformers/all-MiniLM-L6-v2",
             &Device::Cpu,
         ).map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?
     };
 
-    eprintln!("✅ Embedding model ready!");
+    eprintln!("Embedding model ready!");
     Ok(embedder)
 }
 

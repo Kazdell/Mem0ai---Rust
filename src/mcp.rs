@@ -49,17 +49,17 @@ pub async fn run_mcp_server(db_path: PathBuf) -> Result<(), Box<dyn std::error::
                             "tools": [
                                 {
                                     "name": "add_fact",
-                                    "description": "Thêm một Fact (sự thật/thông tin ký ức ngắn) đã được trích xuất vào bộ nhớ dài hạn của người dùng.",
+                                    "description": "Add a new fact or memory to the user's long-term memory store.",
                                     "inputSchema": {
                                         "type": "object",
                                         "properties": {
                                             "fact": {
                                                 "type": "string",
-                                                "description": "Nội dung Fact ngắn gọn (Ví dụ: \"User thích code bằng Rust\")."
+                                                "description": "The fact content (e.g. \"User prefers Rust for backend development\")."
                                             },
                                             "user_id": {
                                                 "type": "string",
-                                                "description": "ID định danh của người dùng (Ví dụ: \"acer\")."
+                                                "description": "The identifier of the user (e.g. \"acer\")."
                                             }
                                         },
                                         "required": ["fact", "user_id"]
@@ -67,21 +67,21 @@ pub async fn run_mcp_server(db_path: PathBuf) -> Result<(), Box<dyn std::error::
                                 },
                                 {
                                     "name": "search_facts",
-                                    "description": "Tìm kiếm ngữ nghĩa các Fact liên quan trong bộ nhớ dài hạn của người dùng.",
+                                    "description": "Semantically search for relevant facts in the user's long-term memory.",
                                     "inputSchema": {
                                         "type": "object",
                                         "properties": {
                                             "query": {
                                                 "type": "string",
-                                                "description": "Câu hỏi hoặc từ khóa tìm kiếm (Ví dụ: \"ngôn ngữ lập trình yêu thích\")."
+                                                "description": "The search query or keyword (e.g. \"favorite programming language\")."
                                             },
                                             "user_id": {
                                                 "type": "string",
-                                                "description": "ID định danh của người dùng."
+                                                "description": "The identifier of the user."
                                             },
                                             "limit": {
                                                 "type": "integer",
-                                                "description": "Số lượng kết quả tối đa trả về (mặc định: 5)."
+                                                "description": "Maximum number of results to return (default: 5)."
                                             }
                                         },
                                         "required": ["query", "user_id"]
@@ -89,13 +89,13 @@ pub async fn run_mcp_server(db_path: PathBuf) -> Result<(), Box<dyn std::error::
                                 },
                                 {
                                     "name": "get_all_facts",
-                                    "description": "Lấy toàn bộ danh sách Fact đang được lưu trữ của người dùng.",
+                                    "description": "Retrieve all stored facts and memories for a user.",
                                     "inputSchema": {
                                         "type": "object",
                                         "properties": {
                                             "user_id": {
                                                 "type": "string",
-                                                "description": "ID định danh của người dùng."
+                                                "description": "The identifier of the user."
                                             }
                                         },
                                         "required": ["user_id"]
@@ -103,13 +103,13 @@ pub async fn run_mcp_server(db_path: PathBuf) -> Result<(), Box<dyn std::error::
                                 },
                                 {
                                     "name": "delete_fact",
-                                    "description": "Xóa một Fact cụ thể khỏi bộ nhớ dài hạn dựa trên Memory ID.",
+                                    "description": "Delete a specific fact from the long-term memory by its ID.",
                                     "inputSchema": {
                                         "type": "object",
                                         "properties": {
                                             "fact_id": {
                                                 "type": "string",
-                                                "description": "ID của Fact cần xóa."
+                                                "description": "The ID of the fact memory to delete."
                                             }
                                         },
                                         "required": ["fact_id"]
@@ -117,13 +117,13 @@ pub async fn run_mcp_server(db_path: PathBuf) -> Result<(), Box<dyn std::error::
                                 },
                                 {
                                     "name": "delete_all_facts",
-                                    "description": "Xóa sạch toàn bộ ký ức của người dùng cụ thể.",
+                                    "description": "Clear all memories and facts for a specific user.",
                                     "inputSchema": {
                                         "type": "object",
                                         "properties": {
                                             "user_id": {
                                                 "type": "string",
-                                                "description": "ID định danh của người dùng cần xóa sạch bộ nhớ."
+                                                "description": "The identifier of the user to clear memories for."
                                             }
                                         },
                                         "required": ["user_id"]
@@ -142,7 +142,7 @@ pub async fn run_mcp_server(db_path: PathBuf) -> Result<(), Box<dyn std::error::
                         match init_embedder() {
                             Ok(emb) => embedder_opt = Some(emb),
                             Err(e) => {
-                                send_mcp_error(id, &format!("Lỗi load embedder: {}", e));
+                                send_mcp_error(id, &format!("Failed to load embedder: {}", e));
                                 line.clear();
                                 continue;
                             }
@@ -154,7 +154,7 @@ pub async fn run_mcp_server(db_path: PathBuf) -> Result<(), Box<dyn std::error::
                     match tool_name {
                         "add_fact" => {
                             let fact = args["fact"].as_str().unwrap_or("");
-                            let user_id = args["user_id"].as_str().unwrap_or("acer");
+                            let user_id = args["user_id"].as_str().unwrap_or("default");
 
                             match generate_embedding(embedder, fact) {
                                 Ok(vector) => {
@@ -166,7 +166,7 @@ pub async fn run_mcp_server(db_path: PathBuf) -> Result<(), Box<dyn std::error::
                                         user_id: user_id.to_string(),
                                     });
                                     if let Err(e) = db.save() {
-                                        send_mcp_error(id, &format!("Lỗi ghi DB: {}", e));
+                                        send_mcp_error(id, &format!("Database save error: {}", e));
                                     } else {
                                         let result = json!({
                                             "status": "success",
@@ -176,12 +176,12 @@ pub async fn run_mcp_server(db_path: PathBuf) -> Result<(), Box<dyn std::error::
                                         send_mcp_success(id, &result.to_string());
                                     }
                                 }
-                                Err(e) => send_mcp_error(id, &format!("Lỗi tạo embedding: {}", e)),
+                                Err(e) => send_mcp_error(id, &format!("Failed to generate embedding: {}", e)),
                             }
                         }
                         "search_facts" => {
                             let query = args["query"].as_str().unwrap_or("");
-                            let user_id = args["user_id"].as_str().unwrap_or("acer");
+                            let user_id = args["user_id"].as_str().unwrap_or("default");
                             let limit = args["limit"].as_u64().unwrap_or(5) as usize;
 
                             match generate_embedding(embedder, query) {
@@ -211,11 +211,11 @@ pub async fn run_mcp_server(db_path: PathBuf) -> Result<(), Box<dyn std::error::
                                     });
                                     send_mcp_success(id, &result.to_string());
                                 }
-                                Err(e) => send_mcp_error(id, &format!("Lỗi tạo embedding: {}", e)),
+                                Err(e) => send_mcp_error(id, &format!("Failed to generate embedding: {}", e)),
                             }
                         }
                         "get_all_facts" => {
-                            let user_id = args["user_id"].as_str().unwrap_or("acer");
+                            let user_id = args["user_id"].as_str().unwrap_or("default");
                             let results: Vec<serde_json::Value> = db.records.iter()
                                 .filter(|r| r.user_id == user_id)
                                 .map(|r| json!({
@@ -236,7 +236,7 @@ pub async fn run_mcp_server(db_path: PathBuf) -> Result<(), Box<dyn std::error::
                             db.records.retain(|r| r.id != fact_id);
                             if db.records.len() < original_len {
                                 if let Err(e) = db.save() {
-                                    send_mcp_error(id, &format!("Lỗi ghi DB: {}", e));
+                                    send_mcp_error(id, &format!("Database save error: {}", e));
                                 } else {
                                     let result = json!({"status": "success", "message": format!("Deleted memory {}", fact_id)});
                                     send_mcp_success(id, &result.to_string());
@@ -247,16 +247,16 @@ pub async fn run_mcp_server(db_path: PathBuf) -> Result<(), Box<dyn std::error::
                             }
                         }
                         "delete_all_facts" => {
-                            let user_id = args["user_id"].as_str().unwrap_or("acer");
+                            let user_id = args["user_id"].as_str().unwrap_or("default");
                             db.records.retain(|r| r.user_id != user_id);
                             if let Err(e) = db.save() {
-                                send_mcp_error(id, &format!("Lỗi ghi DB: {}", e));
+                                send_mcp_error(id, &format!("Database save error: {}", e));
                             } else {
                                 let result = json!({"status": "success", "message": format!("Cleared all memories for user {}", user_id)});
                                 send_mcp_success(id, &result.to_string());
                             }
                         }
-                        _ => send_mcp_error(id, &format!("Tool '{}' không được hỗ trợ", tool_name)),
+                        _ => send_mcp_error(id, &format!("Tool '{}' is not supported", tool_name)),
                     }
                 }
                 _ => {}

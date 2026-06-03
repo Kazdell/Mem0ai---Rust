@@ -47,8 +47,14 @@ pub fn run_dashboard(port: u16, db_path: PathBuf) -> Result<(), Box<dyn std::err
                     .with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"text/html; charset=utf-8"[..]).unwrap());
                 let _ = request.respond(response);
             }
+            ("GET", "/logo.png") => {
+                let logo_bytes = include_bytes!("../logo.png");
+                let response = tiny_http::Response::from_data(logo_bytes.to_vec())
+                    .with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"image/png"[..]).unwrap());
+                let _ = request.respond(response);
+            }
             ("GET", _) if path.starts_with("/api/facts") => {
-                let user_id = parse_query_param(path, "user_id").unwrap_or_else(|| "acer".to_string());
+                let user_id = parse_query_param(path, "user_id").unwrap_or_else(|| "default".to_string());
                 let results: Vec<serde_json::Value> = db.records.iter()
                     .filter(|r| r.user_id == user_id)
                     .map(|r| json!({
@@ -70,7 +76,7 @@ pub fn run_dashboard(port: u16, db_path: PathBuf) -> Result<(), Box<dyn std::err
                 let _ = request.as_reader().read_to_string(&mut body);
                 if let Ok(data) = serde_json::from_str::<serde_json::Value>(&body) {
                     let fact = data["fact"].as_str().unwrap_or("").to_string();
-                    let user_id = data["user_id"].as_str().unwrap_or("acer").to_string();
+                    let user_id = data["user_id"].as_str().unwrap_or("default").to_string();
                     if !fact.is_empty() {
                         if let Ok(vector) = generate_embedding(&embedder, &fact) {
                             let fact_id = Uuid::new_v4().to_string();
@@ -104,7 +110,7 @@ pub fn run_dashboard(port: u16, db_path: PathBuf) -> Result<(), Box<dyn std::err
                 let _ = request.as_reader().read_to_string(&mut body);
                 if let Ok(data) = serde_json::from_str::<serde_json::Value>(&body) {
                     let query = data["query"].as_str().unwrap_or("").to_string();
-                    let user_id = data["user_id"].as_str().unwrap_or("acer").to_string();
+                    let user_id = data["user_id"].as_str().unwrap_or("default").to_string();
                     let limit = data["limit"].as_u64().unwrap_or(10) as usize;
 
                     if !query.is_empty() {
@@ -145,7 +151,7 @@ pub fn run_dashboard(port: u16, db_path: PathBuf) -> Result<(), Box<dyn std::err
                 let _ = request.respond(response);
             }
             ("POST", _) if path.starts_with("/api/facts/clear") => {
-                let user_id = parse_query_param(path, "user_id").unwrap_or_else(|| "acer".to_string());
+                let user_id = parse_query_param(path, "user_id").unwrap_or_else(|| "default".to_string());
                 db.records.retain(|r| r.user_id != user_id);
                 let _ = db.save();
 
@@ -187,6 +193,7 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mem0 Local - Memory Dashboard</title>
+    <link rel="icon" type="image/png" href="/logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -260,7 +267,7 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 pb-6 border-b border-secondary/15 dark:border-secondary/30 gap-4">
             <div>
                 <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-primary dark:text-neutral flex items-center gap-3">
-                    <i class="fa-solid fa-brain text-tertiary"></i> Mem0 Local Dashboard
+                    <img src="/logo.png" alt="Mem0 Logo" class="w-8 h-8 object-contain"> Mem0 Local Dashboard
                 </h1>
                 <p class="text-secondary dark:text-secondary/80 mt-2 text-sm md:text-base font-normal">Offline long-term memory management dashboard for AI agents (Rust Backend)</p>
             </div>
@@ -334,7 +341,7 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
 
     <!-- Script JavaScript -->
     <script>
-        const USER_ID = 'acer';
+        const USER_ID = 'default';
         let memories = [];
         let isSearching = false;
 
@@ -351,7 +358,7 @@ const HTML_TEMPLATE: &str = r#"<!DOCTYPE html>
             }
         }
 
-        function toggleTheme() {
+        fn toggleTheme() {
             const icon = document.getElementById('theme-icon');
             if (document.documentElement.classList.contains('dark')) {
                 document.documentElement.classList.remove('dark');
